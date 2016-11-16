@@ -51,6 +51,7 @@
 #include "myNRF24.h"
 #include "TextOut.h"
 #include "string.h"
+#include "commsfpga.h"
 
 /* USER CODE END Includes */
 
@@ -76,7 +77,7 @@ void Error_Handler(void);
 
 int main(void)
 {
-//baanbrekende function call
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -103,6 +104,17 @@ int main(void)
 
 
   int intToMotor = 0;
+
+  int loopcntr = 0;
+
+  wheelVelocityPacket wheely;
+  wheely.enablesWheels = 0x0F;
+  wheely.velocityWheel1 = 0;
+  wheely.velocityWheel2 = 0;
+  wheely.velocityWheel3 = 0;
+  wheely.velocityWheel4 = 0;
+
+  wheelVelocityPacket backWheely;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,26 +124,31 @@ int main(void)
 	HAL_Delay(1);
 
 	if(usbLength != 0){
-		TextOut("received Data\n");
+		//TextOut("received Data\n");
 
 		for(int i = 0; i <= usbLength; i++){
 
 
 			if(usbData[i] >= 48 && usbData[i] <= 57){
+				//sprintf(smallStrBuffer, "i = %i; usbData[i] = %i; intToMotor = %i\n", i, usbData[i]-48, intToMotor);
+				sprintf(smallStrBuffer, "%i", usbData[i]-48);
+				TextOut(smallStrBuffer);
 				intToMotor = intToMotor*10;
 				intToMotor += (usbData[i] - 48);
 			}
 			else if(usbData[i] == 32){
-				sprintf(smallStrBuffer, "sending data: %d\n", intToMotor);
-				TextOut(smallStrBuffer);
+				//sprintf(smallStrBuffer, "sending data: %d\n", intToMotor);
+				//TextOut(smallStrBuffer);
+				TextOut("\n");
+				wheely.velocityWheel1 = intToMotor;
 				intToMotor = 0;
 			}
 			else if(usbData[i] != 0){
 				TextOut("no number send\n");
-				sprintf(smallStrBuffer, "data int was: %d\n", usbData[i]);
+				/*sprintf(smallStrBuffer, "data int was: %d\n", usbData[i]);
 				TextOut(smallStrBuffer);
 				sprintf(smallStrBuffer, "data char was: %c\n", usbData[i]);
-				TextOut(smallStrBuffer);
+				TextOut(smallStrBuffer);*/
 				intToMotor = 0;
 			}
 		}
@@ -142,7 +159,16 @@ int main(void)
 
 
 
+	if(loopcntr == 500){
+		sendReceivePacket(&hspi1, &wheely, &backWheely);
+		sprintf(smallStrBuffer, "motorspeed: %u %u %u %u \n", (unsigned int)backWheely.velocityWheel1, (unsigned int)backWheely.velocityWheel2, (unsigned int)backWheely.velocityWheel3, (unsigned int)backWheely.velocityWheel4);
+		TextOut(smallStrBuffer);
+		loopcntr = 0;
+	}
 
+	if(intToMotor == 0){
+		loopcntr++;
+	}
 
 
   /* USER CODE END WHILE */
