@@ -76,7 +76,7 @@ void Error_Handler(void);
 
 int main(void)
 {
-
+//baanbrekende function call
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
